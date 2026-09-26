@@ -47,18 +47,6 @@ export default function App() {
   // Map modes
   const [mapMode, setMapMode] = useState("NAV");
   const [temporaryPolygonVertices, setTemporaryPolygonVertices] = useState([]);
-  const [pickedCoords, setPickedCoords] = useState(null);
-
-  // Add manual detection from user photo feed
-  const handleAddManualDetection = (newEntry) => {
-    setCapturedDetections((prev) => [newEntry, ...prev]);
-    setSelectedDetection(newEntry);
-
-    // Calculate rescuer path from Team Alpha to target
-    const team = rescueTeams.find((t) => t.id === selectedTeamId) || rescueTeams[0];
-    const path = generateRescuePath(team, newEntry);
-    setGeneratedPath(path);
-  };
 
   // Generate path to any selected detection
   const handleGeneratePath = (detection, teamId) => {
@@ -158,15 +146,6 @@ export default function App() {
     setTemporaryPolygonVertices([]);
   };
 
-  const handleStartMapPick = () => {
-    setMapMode("PICK_SIGHTING_LOCATION");
-  };
-
-  const handleMapClickLocation = (lat, lon) => {
-    setPickedCoords({ lat, lon });
-    setMapMode("NAV");
-  };
-
   const handleApplySearchArea = (newArea) => {
     setSearchArea(newArea);
   };
@@ -195,7 +174,6 @@ export default function App() {
         searchArea={searchArea}
         generatedPath={generatedPath}
         mapMode={mapMode}
-        onMapClickLocation={handleMapClickLocation}
         onPolygonVertexAdd={handlePolygonVertexAdd}
         onFinishDrawing={handleFinishDrawing}
         onCancelDrawing={handleCancelDrawing}
@@ -222,7 +200,7 @@ export default function App() {
         />
       </div>
 
-      {/* Right Panel: Transparent Feed Photo & Rescuer Path */}
+      {/* Right Panel: Transparent Aerial Detections & Rescuer Path */}
       <div className="absolute top-4 bottom-4 right-4 z-[500] pointer-events-auto">
         <RightPanel
           capturedDetections={capturedDetections}
@@ -235,9 +213,6 @@ export default function App() {
           onGeneratePath={handleGeneratePath}
           onClosePath={() => setGeneratedPath(null)}
           onTransmitToTeam={() => {}}
-          onAddManualDetection={handleAddManualDetection}
-          onStartMapPick={handleStartMapPick}
-          pickedCoords={pickedCoords}
         />
       </div>
     </div>

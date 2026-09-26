@@ -488,14 +488,6 @@ export default function TacticalMap({
           </div>
         </div>
       )}
-
-      {/* Picking Sighting Location Mode Banner */}
-      {mapMode === "PICK_SIGHTING_LOCATION" && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[400] bg-slate-900/95 backdrop-blur-md border border-cyan-500/50 text-cyan-200 px-4 py-2 rounded-2xl text-xs shadow-2xl flex items-center gap-2 animate-pulse">
-          <Crosshair className="w-4 h-4 text-cyan-400" />
-          <span>Click anywhere on map to pinpoint target coordinates</span>
-        </div>
-      )}
     </div>
   );
 }

@@ -108,19 +108,32 @@ export const INITIAL_SEARCH_AREA = {
   ],
 };
 
-// Initial aerial detection feed with the onboard camera photo
+// Initial aerial detection feed with the onboard camera photos
 export const INITIAL_CAPTURED_DETECTIONS = [
   {
     id: "DET-SAR-01",
-    title: "Sector Alpha Sighting (3 Persons)",
+    title: "Campus Courtyard · Sighting 01",
     type: "PERSONS",
-    tag: "3 PERSONS DETECTED",
-    photoUrl: "/aerial_detection_mesra.jpg",
-    latitude: 23.42045,
-    longitude: 85.43468,
-    altitude: 35.0,
-    capturedAt: "10:18:24",
-    natureCondition: "Campus Perimeter · Open Clearing & Access Road",
-    hazardNotes: "Vision model identified 3 individuals with high confidence (0.91, 0.87, 0.84). Approach clear via campus road.",
+    tag: "2 PERSONS + FLOODING",
+    photoUrl: "/aerial_sighting_courtyard.jpg",
+    latitude: 23.42065,
+    longitude: 85.43445,
+    altitude: 32.0,
+    capturedAt: "10:14:18",
+    natureCondition: "Waterlogged Courtyard · Asphalt Road Clear",
+    hazardNotes: "AI detected 2 persons (conf: 0.87, 0.84) and flooded turf (conf: 0.81). Main access road dry for foot rescue team approach.",
+  },
+  {
+    id: "DET-SAR-02",
+    title: "Roadway North · Sighting 02",
+    type: "PERSONS",
+    tag: "2 PERSONS + FLOODING",
+    photoUrl: "/aerial_sighting_roadway.jpg",
+    latitude: 23.42085,
+    longitude: 85.43438,
+    altitude: 28.0,
+    capturedAt: "10:16:05",
+    natureCondition: "Submerged Turf Adjacent to Paved Roadway",
+    hazardNotes: "AI detected 2 persons on paved road (conf: 0.91, 0.87) and submerged ground (conf: 0.83). Direct paved route to Vanguard Alpha.",
   },
 ];

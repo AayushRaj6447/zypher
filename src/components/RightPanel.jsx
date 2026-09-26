@@ -1,15 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Camera,
   MapPin,
   Navigation,
   Radio,
   X,
-  Plus,
-  Upload,
-  CheckCircle2,
   AlertTriangle,
-  ZoomIn,
+  Maximize2,
 } from "lucide-react";
 
 export default function RightPanel({
@@ -23,31 +20,23 @@ export default function RightPanel({
   onGeneratePath,
   onClosePath,
   onTransmitToTeam,
-  onAddManualDetection,
-  onStartMapPick,
-  pickedCoords,
 }) {
-  const [activeTab, setActiveTab] = useState("CAPTURES"); // 'CAPTURES' | 'RESCUER_PATH' | 'FEED'
+  const [activeTab, setActiveTab] = useState("CAPTURES"); // 'CAPTURES' | 'RESCUER_PATH'
   const [isTransmitted, setIsTransmitted] = useState(false);
   const [enlargedPhoto, setEnlargedPhoto] = useState(null);
 
-  // Form for feeding photo & location
-  const [feedTitle, setFeedTitle] = useState("Target Sighting Alpha");
-  const [feedTag, setFeedTag] = useState("PERSONS DETECTED");
-  const [feedLat, setFeedLat] = useState("23.420528");
-  const [feedLon, setFeedLon] = useState("85.434533");
-  const [feedPhoto, setFeedPhoto] = useState(null);
-  const [feedNotes, setFeedNotes] = useState("Campus demonstration area. Clear approach via pedestrian walkway.");
+  // Close full-screen photo modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setEnlargedPhoto(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-  React.useEffect(() => {
-    if (pickedCoords) {
-      setFeedLat(pickedCoords.lat.toFixed(6));
-      setFeedLon(pickedCoords.lon.toFixed(6));
-      setActiveTab("FEED");
-    }
-  }, [pickedCoords]);
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (generatedPath) {
       setActiveTab("RESCUER_PATH");
     }
@@ -59,76 +48,34 @@ export default function RightPanel({
     setTimeout(() => setIsTransmitted(false), 3000);
   };
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFeedPhoto(event.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleFeedSubmit = (e) => {
-    e.preventDefault();
-    const newEntry = {
-      id: `INGEST-${Date.now().toString().slice(-4)}`,
-      title: feedTitle,
-      type: feedTag.includes("PERSONS") ? "PERSONS" : "DAMAGE",
-      tag: feedTag,
-      photoUrl: feedPhoto || null,
-      latitude: parseFloat(feedLat),
-      longitude: parseFloat(feedLon),
-      altitude: 0.0,
-      capturedAt: new Date().toLocaleTimeString("en-GB"),
-      natureCondition: "Campus Demonstration Sector",
-      hazardNotes: feedNotes,
-    };
-
-    onAddManualDetection(newEntry);
-    setActiveTab("CAPTURES");
-  };
-
   const item = selectedDetection || (capturedDetections.length > 0 ? capturedDetections[0] : null);
 
   return (
     <div className="glass-panel rounded-2xl w-84 md:w-96 max-h-[calc(100vh-2rem)] flex flex-col text-slate-200 overflow-hidden shadow-2xl transition-all">
-      {/* Top Header & Transparent Tab Controls */}
+      {/* Top Header & Transparent Tab Controls (2 Clean Tabs) */}
       <div className="p-3 border-b border-white/10 flex items-center justify-between">
-        <div className="grid grid-cols-3 bg-black/30 p-0.5 rounded-xl border border-white/5 text-[11px] w-full">
+        <div className="grid grid-cols-2 bg-black/30 p-0.5 rounded-xl border border-white/5 text-[11px] w-full">
           <button
             onClick={() => setActiveTab("CAPTURES")}
-            className={`py-1.5 rounded-lg transition font-medium text-center flex items-center justify-center gap-1 ${
+            className={`py-1.5 rounded-lg transition font-medium text-center flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === "CAPTURES"
                 ? "bg-white/15 text-white shadow-xs backdrop-blur-sm"
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            <Camera className="w-3 h-3" />
-            <span>Detections ({capturedDetections.length})</span>
+            <Camera className="w-3.5 h-3.5 text-cyan-400" />
+            <span>Aerial Detections ({capturedDetections.length})</span>
           </button>
           <button
             onClick={() => setActiveTab("RESCUER_PATH")}
-            className={`py-1.5 rounded-lg transition font-medium text-center flex items-center justify-center gap-1 ${
+            className={`py-1.5 rounded-lg transition font-medium text-center flex items-center justify-center gap-1.5 cursor-pointer ${
               activeTab === "RESCUER_PATH"
                 ? "bg-white/15 text-white shadow-xs backdrop-blur-sm"
                 : "text-slate-400 hover:text-white"
             }`}
           >
-            <Navigation className="w-3 h-3" />
+            <Navigation className="w-3.5 h-3.5 text-emerald-400" />
             <span>Rescuer Path</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("FEED")}
-            className={`py-1.5 rounded-lg transition font-medium text-center flex items-center justify-center gap-1 ${
-              activeTab === "FEED"
-                ? "bg-white/15 text-white shadow-xs backdrop-blur-sm"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            <Plus className="w-3 h-3" />
-            <span>Feed Photo</span>
           </button>
         </div>
       </div>
@@ -139,16 +86,10 @@ export default function RightPanel({
           {capturedDetections.length === 0 ? (
             <div className="py-12 px-4 text-center text-slate-400 space-y-3">
               <Camera className="w-8 h-8 mx-auto text-slate-500 opacity-60" />
-              <div className="text-white font-medium text-xs">No Detections Registered Yet</div>
+              <div className="text-white font-medium text-xs">Awaiting Drone Aerial Captures</div>
               <div className="text-[11px] text-slate-400 leading-relaxed">
-                Feed an image using the "Feed Photo" tab or click below to upload a photo for the demonstration.
+                Autonomous SAR sweep in progress over campus perimeter.
               </div>
-              <button
-                onClick={() => setActiveTab("FEED")}
-                className="py-1.5 px-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-xs transition"
-              >
-                Upload / Feed Photo Now
-              </button>
             </div>
           ) : (
             <>
@@ -175,24 +116,25 @@ export default function RightPanel({
                     </span>
                   </div>
 
-                  {/* Photo Display with Click-to-Enlarge */}
+                  {/* Photo Display with Click-to-Enlarge in Full View */}
                   {item.photoUrl ? (
                     <div
                       onClick={() => setEnlargedPhoto(item.photoUrl)}
-                      className="relative rounded-xl overflow-hidden border border-white/10 bg-black/90 shadow-lg cursor-pointer group"
-                      title="Click to inspect full resolution detection"
+                      className="relative rounded-xl overflow-hidden border border-white/15 bg-black/95 shadow-lg cursor-pointer group"
+                      title="Click to view full screen"
                     >
                       <img
                         src={item.photoUrl}
                         alt={item.title}
-                        className="w-full max-h-56 object-contain mx-auto transition-transform duration-300 group-hover:scale-[1.02]"
+                        className="w-full max-h-56 object-contain mx-auto transition-transform duration-300 group-hover:scale-[1.01]"
                       />
-                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-xs text-white font-medium backdrop-blur-[2px]">
-                        <ZoomIn className="w-4 h-4 text-cyan-400" />
-                        <span>Inspect High-Res Aerial View</span>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-xs text-white font-medium backdrop-blur-[2px]">
+                        <Maximize2 className="w-4 h-4 text-cyan-400" />
+                        <span>Click to View Full Screen</span>
                       </div>
-                      <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/75 border border-white/10 text-[9px] font-mono text-cyan-300 pointer-events-none">
-                        1024×640 · ONBOARD CAM
+                      <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/80 border border-white/15 text-[9px] font-mono text-cyan-300 flex items-center gap-1 pointer-events-none">
+                        <Maximize2 className="w-2.5 h-2.5" />
+                        <span>VIEW FULL SCREEN</span>
                       </div>
                     </div>
                   ) : (
@@ -202,10 +144,15 @@ export default function RightPanel({
                     </div>
                   )}
 
-                  {/* Condition */}
+                  {/* Ground Condition & Hazard Notes */}
                   <div className="p-2.5 rounded-xl bg-black/25 border border-white/5 space-y-1 text-[11px]">
-                    <div className="text-white font-medium">{item.natureCondition}</div>
-                    <div className="text-slate-400 text-[10px]">{item.hazardNotes}</div>
+                    <div className="text-white font-medium flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                      <span>{item.natureCondition}</span>
+                    </div>
+                    <div className="text-slate-400 text-[10px] leading-relaxed pl-3">
+                      {item.hazardNotes}
+                    </div>
                   </div>
 
                   {/* Button: Show Rescuer Path */}
@@ -222,7 +169,7 @@ export default function RightPanel({
               {/* Feed items list */}
               <div className="space-y-1.5 pt-1">
                 <div className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">
-                  Logged Sighting Feed ({capturedDetections.length})
+                  Logged Aerial Sightings ({capturedDetections.length})
                 </div>
 
                 <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
@@ -239,11 +186,24 @@ export default function RightPanel({
                         }`}
                       >
                         {d.photoUrl ? (
-                          <img
-                            src={d.photoUrl}
-                            alt={d.title}
-                            className="w-10 h-10 rounded-lg object-cover bg-black shrink-0 border border-white/10"
-                          />
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectDetection(d);
+                              setEnlargedPhoto(d.photoUrl);
+                            }}
+                            className="relative group shrink-0"
+                            title="Click to view full image"
+                          >
+                            <img
+                              src={d.photoUrl}
+                              alt={d.title}
+                              className="w-14 h-10 rounded-lg object-cover bg-black border border-white/10 group-hover:border-cyan-400 transition"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition rounded-lg flex items-center justify-center">
+                              <Maximize2 className="w-3 h-3 text-cyan-300" />
+                            </div>
+                          </div>
                         ) : (
                           <div className="w-10 h-10 rounded-lg bg-black/50 border border-white/10 flex items-center justify-center text-slate-400">
                             <MapPin className="w-4 h-4 text-cyan-400" />
@@ -288,7 +248,7 @@ export default function RightPanel({
                 </div>
                 <button
                   onClick={onClosePath}
-                  className="p-1 text-slate-400 hover:text-white rounded"
+                  className="p-1 text-slate-400 hover:text-white rounded cursor-pointer"
                   title="Clear path"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -362,160 +322,70 @@ export default function RightPanel({
         </div>
       )}
 
-      {/* TAB 3: FEED PHOTO (Upload any photo from device or take photo) */}
-      {activeTab === "FEED" && (
-        <form onSubmit={handleFeedSubmit} className="p-3.5 space-y-3 overflow-y-auto text-xs">
-          <div className="text-xs font-semibold text-white tracking-tight">
-            Feed Sighting Photo & Coordinates
-          </div>
-
-          <div>
-            <label className="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">
-              Select Photo from Device
-            </label>
-            <div className="flex items-center gap-2">
-              {feedPhoto ? (
-                <img
-                  src={feedPhoto}
-                  alt="Preview"
-                  className="w-12 h-12 rounded-lg object-cover border border-white/10 bg-black shrink-0"
-                />
-              ) : (
-                <div className="w-12 h-12 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center text-slate-500 shrink-0">
-                  <Camera className="w-5 h-5 opacity-40" />
-                </div>
-              )}
-              <label className="flex-1 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-cyan-300 text-center cursor-pointer text-xs transition">
-                <Upload className="w-3.5 h-3.5 inline mr-1" />
-                Choose Photo File
-                <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
-              </label>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 block mb-0.5">
-                Target Label
-              </label>
-              <input
-                type="text"
-                value={feedTitle}
-                onChange={(e) => setFeedTitle(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-cyan-400"
-                required
-              />
-            </div>
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 block mb-0.5">
-                Detection Type
-              </label>
-              <select
-                value={feedTag}
-                onChange={(e) => setFeedTag(e.target.value)}
-                className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-cyan-400"
-              >
-                <option value="PERSONS DETECTED">Persons Detected</option>
-                <option value="STRUCTURAL DAMAGE">Structural Damage</option>
-                <option value="HAZARD CLEARANCE">Hazard Obstacle</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-0.5">
-              <label className="text-[10px] uppercase tracking-wider text-slate-400">
-                GPS Position (WGS84)
-              </label>
-              <button
-                type="button"
-                onClick={onStartMapPick}
-                className="text-[10px] text-cyan-400 hover:underline flex items-center gap-0.5"
-              >
-                <MapPin className="w-2.5 h-2.5" /> Pick from Map
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                type="number"
-                step="0.000001"
-                placeholder="Latitude"
-                value={feedLat}
-                onChange={(e) => setFeedLat(e.target.value)}
-                className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-cyan-400"
-                required
-              />
-              <input
-                type="number"
-                step="0.000001"
-                placeholder="Longitude"
-                value={feedLon}
-                onChange={(e) => setFeedLon(e.target.value)}
-                className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white font-mono focus:outline-none focus:border-cyan-400"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[10px] uppercase tracking-wider text-slate-400 block mb-0.5">
-              Passability & Ground Notes
-            </label>
-            <textarea
-              rows={2}
-              value={feedNotes}
-              onChange={(e) => setFeedNotes(e.target.value)}
-              className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:border-cyan-400 resize-none"
-            />
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-2.5 px-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
-          >
-            <span>Log Sighting into Feed</span>
-          </button>
-        </form>
-      )}
-
       {/* Fullscreen High-Res Photo Modal */}
       {enlargedPhoto && (
         <div
           onClick={() => setEnlargedPhoto(null)}
-          className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-md flex items-center justify-center p-6 cursor-pointer"
+          className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-md flex items-center justify-center p-3 md:p-6 cursor-pointer"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="relative max-w-4xl w-full max-h-[88vh] bg-slate-900 border border-white/20 rounded-2xl overflow-hidden shadow-2xl flex flex-col cursor-default"
+            className="relative max-w-5xl w-full max-h-[92vh] bg-slate-900/95 border border-white/20 rounded-2xl overflow-hidden shadow-2xl flex flex-col cursor-default"
           >
-            <div className="p-3 border-b border-white/10 flex items-center justify-between text-xs bg-slate-900/90">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-white">{item?.title || "Aerial Vision Capture"}</span>
-                <span className="text-[10px] text-cyan-300 font-mono bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">
-                  ONBOARD DETECTIONS · 1024×640
+            {/* Modal Header */}
+            <div className="p-3.5 border-b border-white/10 flex items-center justify-between text-xs bg-slate-950/80">
+              <div className="flex items-center gap-2.5">
+                <span className="font-semibold text-white text-sm">{item?.title || "Aerial Vision Capture"}</span>
+                <span className="text-[10px] text-cyan-300 font-mono bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-500/30">
+                  {item?.tag || "ONBOARD SENSOR"}
+                </span>
+                <span className="text-[10px] text-slate-400 font-mono">
+                  {item?.capturedAt}
                 </span>
               </div>
               <button
                 onClick={() => setEnlargedPhoto(null)}
-                className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition cursor-pointer"
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1 text-[11px]"
+                title="Close (Esc)"
               >
                 <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Close</span>
               </button>
             </div>
-            <div className="p-2 bg-black/95 flex items-center justify-center overflow-auto">
+
+            {/* Modal Image Body (Full uncropped resolution) */}
+            <div className="p-2 md:p-4 bg-black/95 flex items-center justify-center overflow-auto flex-1">
               <img
                 src={enlargedPhoto}
                 alt="Enlarged Aerial Detection"
-                className="max-h-[72vh] w-auto object-contain rounded-lg"
+                className="max-h-[74vh] w-auto max-w-full object-contain rounded-lg shadow-2xl"
               />
             </div>
-            <div className="p-3 border-t border-white/10 bg-slate-900/90 flex items-center justify-between text-[11px] text-slate-300">
-              <div className="font-mono text-cyan-300">
-                {item?.latitude?.toFixed(6)}°N, {item?.longitude?.toFixed(6)}°E · {item?.capturedAt}
+
+            {/* Modal Footer with Coordinates, Hazard Notes & Action Button */}
+            <div className="p-3 border-t border-white/10 bg-slate-950/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs text-slate-300">
+              <div className="space-y-0.5">
+                <div className="font-mono text-cyan-300 text-[11px] flex items-center gap-2">
+                  <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                  <span>GPS: {item?.latitude?.toFixed(6)}° N, {item?.longitude?.toFixed(6)}° E</span>
+                  <span className="text-slate-500">·</span>
+                  <span className="text-slate-300">{item?.natureCondition}</span>
+                </div>
+                <div className="text-slate-400 text-[11px]">
+                  {item?.hazardNotes}
+                </div>
               </div>
-              <div className="text-slate-400 text-[10px]">
-                {item?.hazardNotes}
-              </div>
+
+              <button
+                onClick={() => {
+                  if (item) onGeneratePath(item, selectedTeamId);
+                  setEnlargedPhoto(null);
+                }}
+                className="py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-xs transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 shrink-0 cursor-pointer"
+              >
+                <Navigation className="w-3.5 h-3.5" />
+                <span>Plot Rescue Route</span>
+              </button>
             </div>
           </div>
         </div>
