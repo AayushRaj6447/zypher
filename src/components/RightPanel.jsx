@@ -9,6 +9,7 @@ import {
   Upload,
   CheckCircle2,
   AlertTriangle,
+  ZoomIn,
 } from "lucide-react";
 
 export default function RightPanel({
@@ -28,6 +29,7 @@ export default function RightPanel({
 }) {
   const [activeTab, setActiveTab] = useState("CAPTURES"); // 'CAPTURES' | 'RESCUER_PATH' | 'FEED'
   const [isTransmitted, setIsTransmitted] = useState(false);
+  const [enlargedPhoto, setEnlargedPhoto] = useState(null);
 
   // Form for feeding photo & location
   const [feedTitle, setFeedTitle] = useState("Target Sighting Alpha");
@@ -173,14 +175,25 @@ export default function RightPanel({
                     </span>
                   </div>
 
-                  {/* Photo Display */}
+                  {/* Photo Display with Click-to-Enlarge */}
                   {item.photoUrl ? (
-                    <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-black shadow-lg">
+                    <div
+                      onClick={() => setEnlargedPhoto(item.photoUrl)}
+                      className="relative rounded-xl overflow-hidden border border-white/10 bg-black/90 shadow-lg cursor-pointer group"
+                      title="Click to inspect full resolution detection"
+                    >
                       <img
                         src={item.photoUrl}
                         alt={item.title}
-                        className="w-full h-full object-cover"
+                        className="w-full max-h-56 object-contain mx-auto transition-transform duration-300 group-hover:scale-[1.02]"
                       />
+                      <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-xs text-white font-medium backdrop-blur-[2px]">
+                        <ZoomIn className="w-4 h-4 text-cyan-400" />
+                        <span>Inspect High-Res Aerial View</span>
+                      </div>
+                      <div className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded bg-black/75 border border-white/10 text-[9px] font-mono text-cyan-300 pointer-events-none">
+                        1024×640 · ONBOARD CAM
+                      </div>
                     </div>
                   ) : (
                     <div className="aspect-video rounded-xl border border-white/10 bg-black/40 flex flex-col items-center justify-center text-slate-500 text-xs">
@@ -463,6 +476,49 @@ export default function RightPanel({
             <span>Log Sighting into Feed</span>
           </button>
         </form>
+      )}
+
+      {/* Fullscreen High-Res Photo Modal */}
+      {enlargedPhoto && (
+        <div
+          onClick={() => setEnlargedPhoto(null)}
+          className="fixed inset-0 z-[2000] bg-black/85 backdrop-blur-md flex items-center justify-center p-6 cursor-pointer"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative max-w-4xl w-full max-h-[88vh] bg-slate-900 border border-white/20 rounded-2xl overflow-hidden shadow-2xl flex flex-col cursor-default"
+          >
+            <div className="p-3 border-b border-white/10 flex items-center justify-between text-xs bg-slate-900/90">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-white">{item?.title || "Aerial Vision Capture"}</span>
+                <span className="text-[10px] text-cyan-300 font-mono bg-cyan-950/80 px-2 py-0.5 rounded border border-cyan-500/30">
+                  ONBOARD DETECTIONS · 1024×640
+                </span>
+              </div>
+              <button
+                onClick={() => setEnlargedPhoto(null)}
+                className="p-1 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-2 bg-black/95 flex items-center justify-center overflow-auto">
+              <img
+                src={enlargedPhoto}
+                alt="Enlarged Aerial Detection"
+                className="max-h-[72vh] w-auto object-contain rounded-lg"
+              />
+            </div>
+            <div className="p-3 border-t border-white/10 bg-slate-900/90 flex items-center justify-between text-[11px] text-slate-300">
+              <div className="font-mono text-cyan-300">
+                {item?.latitude?.toFixed(6)}°N, {item?.longitude?.toFixed(6)}°E · {item?.capturedAt}
+              </div>
+              <div className="text-slate-400 text-[10px]">
+                {item?.hazardNotes}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

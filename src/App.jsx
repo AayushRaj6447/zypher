@@ -7,6 +7,7 @@ import {
   INITIAL_DRONE_TELEMETRY,
   RESCUE_TEAMS,
   INITIAL_SEARCH_AREA,
+  INITIAL_CAPTURED_DETECTIONS,
 } from "./data/initialData";
 
 import {
@@ -36,9 +37,9 @@ export default function App() {
   const [rescueTeams, setRescueTeams] = useState(RESCUE_TEAMS);
   const [selectedTeamId, setSelectedTeamId] = useState("TEAM-ALPHA");
 
-  // Ingested photos / detections list
-  const [capturedDetections, setCapturedDetections] = useState([]);
-  const [selectedDetection, setSelectedDetection] = useState(null);
+  // Ingested photos / detections list (initialized with onboard camera aerial detection)
+  const [capturedDetections, setCapturedDetections] = useState(INITIAL_CAPTURED_DETECTIONS);
+  const [selectedDetection, setSelectedDetection] = useState(INITIAL_CAPTURED_DETECTIONS[0] || null);
 
   // Active Rescuer Path
   const [generatedPath, setGeneratedPath] = useState(null);

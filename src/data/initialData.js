@@ -107,3 +107,20 @@ export const INITIAL_SEARCH_AREA = {
     [23.41975, 85.43495, 35],
   ],
 };
+
+// Initial aerial detection feed with the onboard camera photo
+export const INITIAL_CAPTURED_DETECTIONS = [
+  {
+    id: "DET-SAR-01",
+    title: "Sector Alpha Sighting (3 Persons)",
+    type: "PERSONS",
+    tag: "3 PERSONS DETECTED",
+    photoUrl: "/aerial_detection_mesra.jpg",
+    latitude: 23.42045,
+    longitude: 85.43468,
+    altitude: 35.0,
+    capturedAt: "10:18:24",
+    natureCondition: "Campus Perimeter · Open Clearing & Access Road",
+    hazardNotes: "Vision model identified 3 individuals with high confidence (0.91, 0.87, 0.84). Approach clear via campus road.",
+  },
+];
